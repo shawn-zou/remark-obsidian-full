@@ -1,17 +1,17 @@
-# Obsidian Markdown Parser
+# remark-obsidian-full
 
-A complete Markdown parser for Obsidian syntax with full AST support.
+A complete Markdown parser for Obsidian syntax with full AST support, built on remark.
 
 ## Installation
 
 ```bash
-npm install obsidian-markdown-parser remark remark-parse remark-stringify
+npm install remark-obsidian-full remark remark-parse remark-stringify
 ```
 
 ## Quick Start
 
 ```typescript
-import { ObsidianParser } from 'obsidian-markdown-parser'
+import { ObsidianParser } from 'remark-obsidian-full'
 
 const parser = new ObsidianParser()
 const ast = await parser.parse('[[Note|Alias]]')
@@ -43,7 +43,7 @@ console.log(ast)
 ### ObsidianParser
 
 ```typescript
-import { ObsidianParser } from 'obsidian-markdown-parser'
+import { ObsidianParser } from 'remark-obsidian-full'
 
 const parser = new ObsidianParser({
   syntax: {

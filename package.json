@@ -1,7 +1,7 @@
 {
-  "name": "obsidian-markdown-parser",
+  "name": "remark-obsidian-full",
   "version": "1.0.0",
-  "description": "A complete Markdown parser for Obsidian syntax with full AST support",
+  "description": "A complete Markdown parser for Obsidian syntax with full AST support, built on remark",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "files": [
