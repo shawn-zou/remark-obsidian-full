@@ -14,7 +14,11 @@ export function footnote(): Extension {
     }
 
     function open(code: Code): State | undefined {
-      if (code !== codes.caret) return nok(code)
+      if (code !== codes.caret) {
+        effects.exit('footnoteReferenceMarker')
+        effects.exit('footnoteReference')
+        return nok(code)
+      }
       effects.consume(code)
       effects.exit('footnoteReferenceMarker')
       effects.enter('footnoteReferenceId')
@@ -104,7 +108,11 @@ export function footnote(): Extension {
     }
 
     function open(code: Code): State | undefined {
-      if (code !== codes.caret) return nok(code)
+      if (code !== codes.caret) {
+        effects.exit('footnoteDefinitionMarker')
+        effects.exit('footnoteDefinition')
+        return nok(code)
+      }
       effects.consume(code)
       effects.exit('footnoteDefinitionMarker')
       effects.enter('footnoteDefinitionId')

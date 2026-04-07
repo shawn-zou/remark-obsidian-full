@@ -24,7 +24,10 @@ export function callout(options?: CalloutOptions): Extension {
     }
 
     function space(code: Code): State | undefined {
-      if (code !== codes.space) return nok(code)
+      if (code !== codes.space) {
+        effects.exit('callout')
+        return nok(code)
+      }
       effects.consume(code)
       return openBracket
     }

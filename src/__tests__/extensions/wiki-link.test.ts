@@ -1,5 +1,6 @@
-import { ObsidianParser } from '../ObsidianParser'
-import type { WikiLink } from '../nodes'
+import { describe, it, expect } from 'vitest'
+import { ObsidianParser } from '../../ObsidianParser'
+import type { WikiLink } from '../../nodes'
 
 describe('WikiLink Extension', () => {
   const parser = new ObsidianParser()

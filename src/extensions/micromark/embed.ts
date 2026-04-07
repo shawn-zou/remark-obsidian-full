@@ -23,13 +23,19 @@ export function embed(options?: EmbedOptions): Extension {
     }
 
     function open(code: Code): State | undefined {
-      if (code !== codes.leftSquareBracket) return nok(code)
+      if (code !== codes.leftSquareBracket) {
+        effects.exit('embedMarker')
+        return nok(code)
+      }
       effects.consume(code)
       return openBracket
     }
 
     function openBracket(code: Code): State | undefined {
-      if (code !== codes.leftSquareBracket) return nok(code)
+      if (code !== codes.leftSquareBracket) {
+        effects.exit('embedMarker')
+        return nok(code)
+      }
       effects.consume(code)
       effects.exit('embedMarker')
       effects.enter('embedValue')

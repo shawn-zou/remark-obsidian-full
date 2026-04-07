@@ -11,17 +11,46 @@ export function blockReference(): Extension {
       effects.enter('blockReferenceMarker')
       effects.consume(code)
       effects.exit('blockReferenceMarker')
-      effects.enter('blockReferenceId')
-      return id
+      return afterMarker
     }
 
-    function id(code: Code): State | undefined {
-      if (code === null) {
+    function afterMarker(code: Code): State | undefined {
+      if (code === null || code === codes.eof) {
+        effects.exit('blockReference')
         return nok(code)
       }
 
       if (
-        code === codes.eof ||
+        code === codes.space ||
+        code === codes.tab ||
+        code === codes.carriageReturn ||
+        code === codes.lineFeed
+      ) {
+        effects.exit('blockReference')
+        return nok(code)
+      }
+
+      if (
+        code >= codes.digit0 && code <= codes.digit9 ||
+        code >= codes.lowercaseA && code <= codes.lowercaseZ ||
+        code >= codes.uppercaseA && code <= codes.uppercaseZ ||
+        code === codes.dash
+      ) {
+        effects.enter('blockReferenceId')
+        effects.consume(code)
+        return id
+      }
+
+      effects.exit('blockReference')
+      return nok(code)
+    }
+
+    function id(code: Code): State | undefined {
+      if (code === null || code === codes.eof) {
+        return end(code)
+      }
+
+      if (
         code === codes.space ||
         code === codes.tab ||
         code === codes.carriageReturn ||

@@ -14,6 +14,9 @@ export function wikiLink(options?: WikiLinkOptions): Extension {
     let hasAlias = false
     let hasHeading = false
     let hasBlockId = false
+    let aliasSize = 0
+    let headingSize = 0
+    let blockIdSize = 0
 
     return start
 
@@ -22,11 +25,13 @@ export function wikiLink(options?: WikiLinkOptions): Extension {
       effects.enter('wikiLink')
       effects.enter('wikiLinkMarker')
       effects.consume(code)
+      effects.exit('wikiLinkMarker')
       return open
     }
 
     function open(code: Code): State | undefined {
       if (code !== codes.leftSquareBracket) return nok(code)
+      effects.enter('wikiLinkMarker')
       effects.consume(code)
       effects.exit('wikiLinkMarker')
       effects.enter('wikiLinkValue')
@@ -38,7 +43,7 @@ export function wikiLink(options?: WikiLinkOptions): Extension {
       
       if (code === codes.rightSquareBracket) {
         if (size === 0) return nok(code)
-        return close
+        return close(code)
       }
 
       if (code === codes.backslash) {
@@ -79,19 +84,22 @@ export function wikiLink(options?: WikiLinkOptions): Extension {
     function alias(code: Code): State | undefined {
       if (code === codes.eof) return nok(code)
       if (code === codes.rightSquareBracket) {
+        if (aliasSize === 0) return nok(code)
         effects.exit('wikiLinkAlias')
-        return close
+        return close(code)
       }
       if (code === codes.backslash) {
         effects.consume(code)
         return aliasEscape
       }
+      aliasSize++
       effects.consume(code)
       return alias
     }
 
     function aliasEscape(code: Code): State | undefined {
       if (code === codes.eof) return nok(code)
+      aliasSize++
       effects.consume(code)
       return alias
     }
@@ -104,16 +112,21 @@ export function wikiLink(options?: WikiLinkOptions): Extension {
         effects.enter('wikiLinkBlockId')
         return blockId
       }
+      if (code === codes.rightSquareBracket) {
+        return nok(code)
+      }
       return heading(code)
     }
 
     function heading(code: Code): State | undefined {
       if (code === codes.eof) return nok(code)
       if (code === codes.rightSquareBracket) {
+        if (headingSize === 0) return nok(code)
         effects.exit('wikiLinkHeading')
-        return close
+        return close(code)
       }
       if (code === aliasDivider.charCodeAt(0)) {
+        if (headingSize === 0) return nok(code)
         effects.exit('wikiLinkHeading')
         hasAlias = true
         effects.enter('wikiLinkAliasMarker')
@@ -122,6 +135,7 @@ export function wikiLink(options?: WikiLinkOptions): Extension {
         effects.enter('wikiLinkAlias')
         return alias
       }
+      headingSize++
       effects.consume(code)
       return heading
     }
@@ -129,10 +143,12 @@ export function wikiLink(options?: WikiLinkOptions): Extension {
     function blockId(code: Code): State | undefined {
       if (code === codes.eof) return nok(code)
       if (code === codes.rightSquareBracket) {
+        if (blockIdSize === 0) return nok(code)
         effects.exit('wikiLinkBlockId')
-        return close
+        return close(code)
       }
       if (code === aliasDivider.charCodeAt(0)) {
+        if (blockIdSize === 0) return nok(code)
         effects.exit('wikiLinkBlockId')
         hasAlias = true
         effects.enter('wikiLinkAliasMarker')
@@ -141,6 +157,7 @@ export function wikiLink(options?: WikiLinkOptions): Extension {
         effects.enter('wikiLinkAlias')
         return alias
       }
+      blockIdSize++
       effects.consume(code)
       return blockId
     }
@@ -158,7 +175,7 @@ export function wikiLink(options?: WikiLinkOptions): Extension {
       effects.consume(code)
       effects.exit('wikiLinkMarker')
       effects.exit('wikiLink')
-      return ok
+      return ok(code)
     }
   }
 
@@ -185,7 +202,18 @@ export function parseWikiLinkValue(value: string, aliasDivider: string = '|'): {
   let blockId: string | undefined
   let rawValue = value
 
-  const aliasIndex = value.indexOf(aliasDivider)
+  let aliasIndex = -1
+  for (let i = 0; i < value.length; i++) {
+    if (value[i] === '\\' && i + 1 < value.length) {
+      i++
+      continue
+    }
+    if (value[i] === aliasDivider) {
+      aliasIndex = i
+      break
+    }
+  }
+  
   if (aliasIndex !== -1) {
     alias = value.slice(aliasIndex + 1)
     value = value.slice(0, aliasIndex)
@@ -194,15 +222,21 @@ export function parseWikiLinkValue(value: string, aliasDivider: string = '|'): {
 
   const blockIdMatch = value.match(/#\^([a-zA-Z0-9\-]+)$/)
   if (blockIdMatch) {
-    blockId = blockIdMatch[1]
-    value = value.slice(0, -blockIdMatch[0].length)
-    rawValue = value
+    const hashIndex = value.lastIndexOf('#')
+    if (hashIndex > 0 && value[hashIndex - 1] !== '\\') {
+      blockId = blockIdMatch[1]
+      value = value.slice(0, -blockIdMatch[0].length)
+      rawValue = value
+    }
   } else {
     const headingMatch = value.match(/#([^#]+)$/)
     if (headingMatch) {
-      heading = headingMatch[1]
-      value = value.slice(0, -headingMatch[0].length)
-      rawValue = value
+      const hashIndex = value.lastIndexOf('#')
+      if (hashIndex > 0 && value[hashIndex - 1] !== '\\') {
+        heading = headingMatch[1]
+        value = value.slice(0, -headingMatch[0].length)
+        rawValue = value
+      }
     }
   }
 

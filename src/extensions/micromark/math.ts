@@ -70,7 +70,11 @@ export function math(options?: MathOptions): Extension {
     }
 
     function openSecond(code: Code): State | undefined {
-      if (code !== codes.dollarSign) return nok(code)
+      if (code !== codes.dollarSign) {
+        effects.exit('mathBlockFence')
+        effects.exit('mathBlock')
+        return nok(code)
+      }
       effects.consume(code)
       effects.exit('mathBlockFence')
       effects.enter('mathBlockValue')
