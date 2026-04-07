@@ -11,7 +11,6 @@ export function wikiLink(options?: WikiLinkOptions): Extension {
 
   const tokenize: Tokenizer = function(effects, ok, nok) {
     let size = 0
-    let dataStart: number | undefined
     let hasAlias = false
     let hasHeading = false
     let hasBlockId = false
@@ -31,7 +30,6 @@ export function wikiLink(options?: WikiLinkOptions): Extension {
       effects.consume(code)
       effects.exit('wikiLinkMarker')
       effects.enter('wikiLinkValue')
-      dataStart = this.now().offset
       return data
     }
 
@@ -80,7 +78,10 @@ export function wikiLink(options?: WikiLinkOptions): Extension {
 
     function alias(code: Code): State | undefined {
       if (code === codes.eof) return nok(code)
-      if (code === codes.rightSquareBracket) return close
+      if (code === codes.rightSquareBracket) {
+        effects.exit('wikiLinkAlias')
+        return close
+      }
       if (code === codes.backslash) {
         effects.consume(code)
         return aliasEscape
@@ -108,7 +109,10 @@ export function wikiLink(options?: WikiLinkOptions): Extension {
 
     function heading(code: Code): State | undefined {
       if (code === codes.eof) return nok(code)
-      if (code === codes.rightSquareBracket) return close
+      if (code === codes.rightSquareBracket) {
+        effects.exit('wikiLinkHeading')
+        return close
+      }
       if (code === aliasDivider.charCodeAt(0)) {
         effects.exit('wikiLinkHeading')
         hasAlias = true
@@ -124,7 +128,10 @@ export function wikiLink(options?: WikiLinkOptions): Extension {
 
     function blockId(code: Code): State | undefined {
       if (code === codes.eof) return nok(code)
-      if (code === codes.rightSquareBracket) return close
+      if (code === codes.rightSquareBracket) {
+        effects.exit('wikiLinkBlockId')
+        return close
+      }
       if (code === aliasDivider.charCodeAt(0)) {
         effects.exit('wikiLinkBlockId')
         hasAlias = true
@@ -142,6 +149,12 @@ export function wikiLink(options?: WikiLinkOptions): Extension {
       if (code !== codes.rightSquareBracket) return nok(code)
       effects.exit('wikiLinkValue')
       effects.enter('wikiLinkMarker')
+      effects.consume(code)
+      return closeEnd
+    }
+
+    function closeEnd(code: Code): State | undefined {
+      if (code !== codes.rightSquareBracket) return nok(code)
       effects.consume(code)
       effects.exit('wikiLinkMarker')
       effects.exit('wikiLink')

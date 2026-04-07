@@ -66,6 +66,12 @@ export function embed(options?: EmbedOptions): Extension {
       effects.exit('embedValue')
       effects.enter('embedMarker')
       effects.consume(code)
+      return closeEnd
+    }
+
+    function closeEnd(code: Code): State | undefined {
+      if (code !== codes.rightSquareBracket) return nok(code)
+      effects.consume(code)
       effects.exit('embedMarker')
       effects.exit('embed')
       return ok

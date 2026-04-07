@@ -68,7 +68,7 @@ export class ObsidianParser {
     }
     
     const micromarkExtensions = obsidianMicromark()
-	const fromMarkdownExtensions = obsidianFromMarkdown()
+	const fromMarkdownExtensions = [obsidianFromMarkdown()]
 	
 	processor.data('micromarkExtensions', micromarkExtensions)
 	processor.data('fromMarkdownExtensions', fromMarkdownExtensions)
@@ -77,10 +77,10 @@ export class ObsidianParser {
 	const pluginFromMarkdownExtensions = this.pluginManager.getFromMarkdownExtensions()
 	
 	if (pluginMicromarkExtensions.length > 0) {
-		processor.data('micromarkExtensions', pluginMicromarkExtensions)
+		processor.data('micromarkExtensions', [...micromarkExtensions, ...pluginMicromarkExtensions])
 	}
 	if (pluginFromMarkdownExtensions.length > 0) {
-		processor.data('fromMarkdownExtensions', pluginFromMarkdownExtensions)
+		processor.data('fromMarkdownExtensions', [...fromMarkdownExtensions, ...pluginFromMarkdownExtensions])
 	}
     
     return processor
