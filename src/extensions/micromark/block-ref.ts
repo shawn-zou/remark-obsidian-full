@@ -16,6 +16,10 @@ export function blockReference(): Extension {
     }
 
     function id(code: Code): State | undefined {
+      if (code === null) {
+        return nok(code)
+      }
+
       if (
         code === codes.eof ||
         code === codes.space ||

@@ -1,4 +1,4 @@
-import { unified } from 'unified'
+import { unified, type Processor } from 'unified'
 import remarkParse from 'remark-parse'
 import remarkStringify from 'remark-stringify'
 import remarkGfm from 'remark-gfm'
@@ -37,8 +37,10 @@ export class ObsidianParser {
   private config: ParserConfig
   private pluginManager: PluginManager
   private hookManager: HookManager
-  private parseProcessor: ReturnType<typeof unified>
-  private stringifyProcessor: ReturnType<typeof unified>
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  private parseProcessor: any
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  private stringifyProcessor: any
 
   constructor(config?: ParserConfig) {
     this.config = config ?? {}
@@ -101,10 +103,7 @@ export class ObsidianParser {
     const toMarkdownExtensions = obsidianToMarkdown(this.config.stringify)
     const pluginExtensions = this.pluginManager.getToMarkdownExtensions()
     
-    processor.data('toMarkdownExtensions', {
-      ...toMarkdownExtensions,
-      ...pluginExtensions
-    })
+    processor.data('toMarkdownExtensions', [toMarkdownExtensions, pluginExtensions])
     
     return processor
   }
@@ -117,7 +116,7 @@ export class ObsidianParser {
       beforeStringify: (fn) => { self.hookManager.register('beforeStringify', fn) },
       afterStringify: (fn) => { self.hookManager.register('afterStringify', fn) },
       onError: (fn) => { self.hookManager.register('onError', fn) }
-    } as ParserHooks
+    }
   }
 
   async parse(text: string): Promise<Root> {
@@ -151,11 +150,12 @@ export class ObsidianParser {
   }
 
   visit(ast: Root, visitor: (node: Node, index: number | null, parent: Parent | null) => void | boolean): void {
-    visit(ast, visitor)
+    visit(ast, visitor as Parameters<typeof visit>[1])
   }
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   visitByType(ast: Root, type: string | string[], visitor: (node: Node, index: number | null, parent: Parent | null) => void | boolean): void {
-    visit(ast, type, visitor)
+    (visit as any)(ast, type, visitor)
   }
 
   findNodesByType(ast: Root, type: string | string[]): Node[] {
@@ -188,11 +188,19 @@ export class ObsidianParser {
     type?: string | string[]
     filter?: (node: Node) => boolean
   }): Node[] {
-    let nodes = this.findNodesByType(ast, query.type ?? [])
+    const typeArray = query.type 
+      ? (Array.isArray(query.type) ? query.type : [query.type]) 
+      : []
+    const types = typeArray.length > 0 ? typeArray : null
+    const nodes: Node[] = []
     
-    if (query.filter) {
-      nodes = nodes.filter(query.filter)
-    }
+    visit(ast, (node) => {
+      if (!types || types.includes(node.type)) {
+        if (!query.filter || query.filter(node)) {
+          nodes.push(node)
+        }
+      }
+    })
     
     return nodes
   }

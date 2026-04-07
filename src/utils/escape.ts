@@ -1,25 +1,32 @@
 const WIKILINK_ESCAPE_CHARS = ['\\', '|', '#', '^']
+const ALIAS_ESCAPE_CHARS = [']']
+const HEADING_ESCAPE_CHARS = ['\\', '^']
 
 export function escapeWikiLink(text: string): string {
-  let result = text
-  for (const char of WIKILINK_ESCAPE_CHARS) {
-    result = result.split(char).join('\\' + char)
-  }
-  return result
+  return text.replace(/([\\|#^])/g, '\\$1')
 }
 
 export function unescapeWikiLink(text: string): string {
   return text.replace(/\\([\\|#^])/g, '$1')
 }
 
-export function needsEscape(text: string): boolean {
-  return WIKILINK_ESCAPE_CHARS.some(char => text.includes(char))
+export function needsEscape(text: string, context: 'value' | 'alias' | 'heading' = 'value'): boolean {
+  const chars = context === 'alias' 
+    ? ALIAS_ESCAPE_CHARS 
+    : context === 'heading' 
+      ? HEADING_ESCAPE_CHARS 
+      : WIKILINK_ESCAPE_CHARS
+  return chars.some(char => text.includes(char))
 }
 
 export function escapeMinimal(
   text: string,
   context: 'value' | 'alias' | 'heading'
 ): string {
+  if (!needsEscape(text, context)) {
+    return text
+  }
+  
   switch (context) {
     case 'value':
       return text.replace(/([\\|#^])/g, '\\$1')

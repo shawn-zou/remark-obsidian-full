@@ -206,7 +206,8 @@ const exitComment: Handle = function(token) {
 const enterFootnoteReference: Handle = function(token) {
   const node: FootnoteReference = {
     type: 'footnoteReference',
-    identifier: ''
+    identifier: '',
+    value: ''
   }
   this.enter(node, token)
 }
@@ -256,7 +257,8 @@ const exitFootnoteDefinition: Handle = function(token) {
 const enterBlockReference: Handle = function(token) {
   const node: BlockReference = {
     type: 'blockReference',
-    identifier: ''
+    identifier: '',
+    value: ''
   }
   this.enter(node, token)
 }

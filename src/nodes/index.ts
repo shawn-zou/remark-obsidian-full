@@ -1,4 +1,7 @@
-import type { Literal, Parent } from 'mdast'
+import type { Literal, Parent, BlockContent, DefinitionContent } from 'mdast'
+import type { Position } from '../utils/position'
+
+export { Position }
 
 export enum NodeType {
   Root = 'root',
@@ -52,11 +55,6 @@ export const EXCLUDED_NODE_TYPES: NodeType[] = [
   NodeType.Highlight,
   NodeType.Comment,
 ]
-
-export interface Position {
-  start: { line: number; column: number; offset: number }
-  end: { line: number; column: number; offset: number }
-}
 
 export interface BaseNode {
   type: string
@@ -148,6 +146,7 @@ export interface FootnoteReference extends Literal {
 export interface FootnoteDefinition extends Parent {
   type: 'footnoteDefinition'
   identifier: string
+  children: (BlockContent | DefinitionContent)[]
   data?: {
     hName?: string
     hProperties?: Record<string, string>

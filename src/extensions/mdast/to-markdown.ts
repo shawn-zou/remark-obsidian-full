@@ -1,6 +1,6 @@
 import type { Options, Handle } from 'mdast-util-to-markdown'
 import type { WikiLink, Embed, Tag, Callout, Highlight, Comment, FootnoteReference, FootnoteDefinition, BlockReference, Math } from '../../nodes'
-import { escapeWikiLink } from '../../utils/escape'
+import { escapeMinimal } from '../../utils/escape'
 
 export interface StringifyOptions {
   escapeMode?: 'preserve' | 'smart' | 'minimal'
@@ -42,15 +42,15 @@ function handleWikiLink(escapeMode: 'preserve' | 'smart' | 'minimal'): Handle {
         value += '|' + (wikiLink.raw.alias ?? wikiLink.alias)
       }
     } else {
-      value = escapeWikiLink(wikiLink.value)
+      value = escapeMinimal(wikiLink.value, 'value')
       if (wikiLink.heading) {
-        value += '#' + escapeWikiLink(wikiLink.heading)
+        value += '#' + escapeMinimal(wikiLink.heading, 'heading')
       }
       if (wikiLink.blockId) {
         value += '#^' + wikiLink.blockId
       }
       if (wikiLink.alias) {
-        value += '|' + escapeWikiLink(wikiLink.alias)
+        value += '|' + escapeMinimal(wikiLink.alias, 'alias')
       }
     }
 
@@ -66,15 +66,15 @@ function handleEmbed(escapeMode: 'preserve' | 'smart' | 'minimal'): Handle {
     if (escapeMode === 'preserve' && embed.raw) {
       value = embed.raw.value ?? embed.value
       if (embed.heading) {
-        value += '#' + (embed.raw.heading ?? embed.heading)
+        value += '#' + embed.heading
       }
       if (embed.blockId) {
         value += '#^' + embed.blockId
       }
     } else {
-      value = escapeWikiLink(embed.value)
+      value = escapeMinimal(embed.value, 'value')
       if (embed.heading) {
-        value += '#' + escapeWikiLink(embed.heading)
+        value += '#' + escapeMinimal(embed.heading, 'heading')
       }
       if (embed.blockId) {
         value += '#^' + embed.blockId

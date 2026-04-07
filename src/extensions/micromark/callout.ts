@@ -48,7 +48,7 @@ export function callout(options?: CalloutOptions): Extension {
     }
 
     function calloutTypeName(code: Code): State | undefined {
-      if (code === codes.eof) return nok(code)
+      if (code === null || code === codes.eof) return nok(code)
       if (code === codes.rightSquareBracket) {
         if (type.length === 0) return nok(code)
         return closeType

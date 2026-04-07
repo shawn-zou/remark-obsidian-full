@@ -75,8 +75,8 @@ export class PluginManager {
     return this.getByPriority().flatMap(p => p.fromMarkdownExtensions ?? [])
   }
 
-  getToMarkdownExtensions(): ToMarkdownExtension[] {
-    const extensions: ToMarkdownExtension[] = {}
+  getToMarkdownExtensions(): ToMarkdownExtension {
+    const extensions: ToMarkdownExtension = {}
     for (const plugin of this.getByPriority()) {
       if (plugin.toMarkdownExtensions) {
         if (plugin.toMarkdownExtensions.handlers) {

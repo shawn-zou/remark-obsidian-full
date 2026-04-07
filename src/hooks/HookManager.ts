@@ -11,25 +11,33 @@ export interface ParseError {
 
 export interface ParseContext {
   text: string
-  options: Record<string, unknown>
+  options: unknown
+}
+
+export interface HookFunctions {
+  beforeParse: (text: string, context: ParseContext) => string
+  afterParse: (ast: Root, context: ParseContext) => Root
+  beforeStringify: (ast: Root, context: ParseContext) => Root
+  afterStringify: (text: string, context: ParseContext) => string
+  onNodeEnter?: (node: Node, context: ParseContext) => void | boolean
+  onNodeExit?: (node: Node, context: ParseContext) => void
+  onError: (error: ParseError, context: ParseContext) => void
 }
 
 export interface ParserHooks {
-  beforeParse?: (text: string, context: ParseContext) => string
-  afterParse?: (ast: Root, context: ParseContext) => Root
-  beforeStringify?: (ast: Root, context: ParseContext) => Root
-  afterStringify?: (text: string, context: ParseContext) => string
-  onNodeEnter?: (node: Node, context: ParseContext) => void | boolean
-  onNodeExit?: (node: Node, context: ParseContext) => void
-  onError?: (error: ParseError, context: ParseContext) => void
+  beforeParse: (fn: HookFunctions['beforeParse']) => void
+  afterParse: (fn: HookFunctions['afterParse']) => void
+  beforeStringify: (fn: HookFunctions['beforeStringify']) => void
+  afterStringify: (fn: HookFunctions['afterStringify']) => void
+  onError: (fn: HookFunctions['onError']) => void
 }
 
-export type HookName = keyof ParserHooks
+export type HookName = keyof HookFunctions
 
 export class HookManager {
-  private hooks: Map<HookName, Set<NonNullable<ParserHooks[HookName]>>> = new Map()
+  private hooks: Map<HookName, Set<NonNullable<HookFunctions[HookName]>>> = new Map()
 
-  register<K extends HookName>(name: K, hook: NonNullable<ParserHooks[K]>): () => void {
+  register<K extends HookName>(name: K, hook: NonNullable<HookFunctions[K]>): () => void {
     if (!this.hooks.has(name)) {
       this.hooks.set(name, new Set())
     }
@@ -40,7 +48,7 @@ export class HookManager {
     }
   }
 
-  unregister<K extends HookName>(name: K, hook: NonNullable<ParserHooks[K]>): boolean {
+  unregister<K extends HookName>(name: K, hook: NonNullable<HookFunctions[K]>): boolean {
     const hookSet = this.hooks.get(name)
     if (hookSet) {
       return hookSet.delete(hook)
@@ -58,11 +66,11 @@ export class HookManager {
 
   async execute<K extends HookName>(
     name: K,
-    ...args: Parameters<NonNullable<ParserHooks[K]>>
-  ): Promise<ReturnType<NonNullable<ParserHooks[K]>> | undefined> {
+    ...args: Parameters<NonNullable<HookFunctions[K]>>
+  ): Promise<ReturnType<NonNullable<HookFunctions[K]>> | undefined> {
     const hookSet = this.hooks.get(name)
     if (!hookSet || hookSet.size === 0) {
-      return args[0] as ReturnType<NonNullable<ParserHooks[K]>>
+      return args[0] as ReturnType<NonNullable<HookFunctions[K]>>
     }
 
     let result = args[0]
@@ -76,7 +84,7 @@ export class HookManager {
         console.error(`Hook "${name}" error:`, error)
       }
     }
-    return result as ReturnType<NonNullable<ParserHooks[K]>>
+    return result as ReturnType<NonNullable<HookFunctions[K]>>
   }
 
   has(name: HookName): boolean {

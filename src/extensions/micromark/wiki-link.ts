@@ -179,26 +179,30 @@ export function parseWikiLinkValue(value: string, aliasDivider: string = '|'): {
   blockId?: string
   raw: { value: string; alias?: string; heading?: string }
 } {
-  const rawValue = value
+  const rawFullValue = value
   let alias: string | undefined
   let heading: string | undefined
   let blockId: string | undefined
+  let rawValue = value
 
   const aliasIndex = value.indexOf(aliasDivider)
   if (aliasIndex !== -1) {
     alias = value.slice(aliasIndex + 1)
     value = value.slice(0, aliasIndex)
+    rawValue = value
   }
 
   const blockIdMatch = value.match(/#\^([a-zA-Z0-9\-]+)$/)
   if (blockIdMatch) {
     blockId = blockIdMatch[1]
     value = value.slice(0, -blockIdMatch[0].length)
+    rawValue = value
   } else {
     const headingMatch = value.match(/#([^#]+)$/)
     if (headingMatch) {
       heading = headingMatch[1]
       value = value.slice(0, -headingMatch[0].length)
+      rawValue = value
     }
   }
 

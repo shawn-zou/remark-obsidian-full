@@ -96,7 +96,6 @@ export function parseEmbedValue(value: string, aliasDivider: string = '|'): {
   height?: number
   raw: { value: string }
 } {
-  const rawValue = value
   let heading: string | undefined
   let blockId: string | undefined
   let width: number | undefined
@@ -122,6 +121,8 @@ export function parseEmbedValue(value: string, aliasDivider: string = '|'): {
       value = value.slice(0, -headingMatch[0].length)
     }
   }
+
+  const rawValue = value
 
   return {
     value: unescapeWikiLink(value),
