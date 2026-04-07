@@ -299,9 +299,9 @@ Text [[real-link]] after.
 
     it('should execute afterParse hook', async () => {
       let called = false
-      parser.hooks.afterParse(() => {
+      parser.hooks.afterParse((ast) => {
         called = true
-        return arguments[0]
+        return ast
       })
       await parser.parse('test')
       expect(called).toBe(true)
@@ -310,9 +310,9 @@ Text [[real-link]] after.
     it('should execute beforeStringify hook', async () => {
       let called = false
       const ast = await parser.parse('test')
-      parser.hooks.beforeStringify(() => {
+      parser.hooks.beforeStringify((ast) => {
         called = true
-        return arguments[0]
+        return ast
       })
       await parser.stringify(ast)
       expect(called).toBe(true)
@@ -321,9 +321,9 @@ Text [[real-link]] after.
     it('should execute afterStringify hook', async () => {
       let called = false
       const ast = await parser.parse('test')
-      parser.hooks.afterStringify(() => {
+      parser.hooks.afterStringify((text) => {
         called = true
-        return arguments[0]
+        return text
       })
       await parser.stringify(ast)
       expect(called).toBe(true)
