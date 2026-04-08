@@ -27,7 +27,7 @@ export function math(options?: MathOptions): Extension {
       if (code === codes.eof) return nok(code)
       if (code === codes.dollarSign) {
         if (size === 0) return nok(code)
-        return close
+        return close(code)
       }
       if (code === codes.backslash) {
         effects.consume(code)
@@ -52,7 +52,7 @@ export function math(options?: MathOptions): Extension {
       effects.consume(code)
       effects.exit('mathInlineMarker')
       effects.exit('mathInline')
-      return ok
+      return ok(code)
     }
   }
 
@@ -84,7 +84,7 @@ export function math(options?: MathOptions): Extension {
     function data(code: Code): State | undefined {
       if (code === codes.eof) return nok(code)
       if (code === codes.dollarSign) {
-        return closeFirst
+        return closeFirst(code)
       }
       effects.consume(code)
       return data
@@ -103,7 +103,7 @@ export function math(options?: MathOptions): Extension {
       effects.consume(code)
       effects.exit('mathBlockFence')
       effects.exit('mathBlock')
-      return ok
+      return ok(code)
     }
   }
 

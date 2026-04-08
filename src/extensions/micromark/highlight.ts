@@ -27,7 +27,7 @@ export function highlight(): Extension {
       if (code === codes.eof) return nok(code)
       if (code === codes.equalsTo) {
         if (size === 0) return nok(code)
-        return close
+        return close(code)
       }
       if (code === codes.backslash) {
         effects.consume(code)
@@ -58,7 +58,7 @@ export function highlight(): Extension {
       effects.consume(code)
       effects.exit('highlightMarker')
       effects.exit('highlight')
-      return ok
+      return ok(code)
     }
   }
 

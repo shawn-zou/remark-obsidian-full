@@ -27,7 +27,7 @@ export function comment(): Extension {
       if (code === codes.eof) return nok(code)
       if (code === codes.percentSign) {
         if (size === 0) return nok(code)
-        return close
+        return close(code)
       }
       if (code === codes.backslash) {
         effects.consume(code)
@@ -53,7 +53,7 @@ export function comment(): Extension {
       effects.consume(code)
       effects.exit('commentMarker')
       effects.exit('comment')
-      return ok
+      return ok(code)
     }
   }
 

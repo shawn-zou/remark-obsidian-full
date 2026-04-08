@@ -54,7 +54,7 @@ export function callout(options?: CalloutOptions): Extension {
       if (code === null || code === codes.eof) return nok(code)
       if (code === codes.rightSquareBracket) {
         if (type.length === 0) return nok(code)
-        return closeType
+        return closeType(code)
       }
       if (
         code >= codes.lowercaseA && code <= codes.lowercaseZ ||

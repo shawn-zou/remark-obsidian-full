@@ -28,7 +28,7 @@ export function footnote(): Extension {
     function id(code: Code): State | undefined {
       if (code === codes.eof) return nok(code)
       if (code === codes.rightSquareBracket) {
-        return close
+        return close(code)
       }
       effects.consume(code)
       return id
@@ -41,7 +41,7 @@ export function footnote(): Extension {
       effects.consume(code)
       effects.exit('footnoteReferenceMarker')
       effects.exit('footnoteReference')
-      return ok
+      return ok(code)
     }
   }
 
@@ -69,7 +69,7 @@ export function footnote(): Extension {
     function data(code: Code): State | undefined {
       if (code === codes.eof) return nok(code)
       if (code === codes.rightSquareBracket) {
-        return close
+        return close(code)
       }
       if (code === codes.backslash) {
         effects.consume(code)
@@ -92,7 +92,7 @@ export function footnote(): Extension {
       effects.consume(code)
       effects.exit('footnoteInlineMarker')
       effects.exit('footnoteInline')
-      return ok
+      return ok(code)
     }
   }
 
@@ -122,7 +122,7 @@ export function footnote(): Extension {
     function id(code: Code): State | undefined {
       if (code === codes.eof) return nok(code)
       if (code === codes.rightSquareBracket) {
-        return colon
+        return colon(code)
       }
       effects.consume(code)
       return id

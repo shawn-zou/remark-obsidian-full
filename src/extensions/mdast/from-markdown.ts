@@ -15,6 +15,7 @@ export function obsidianFromMarkdown(): FromMarkdownExtension {
       highlight: enterHighlight,
       comment: enterComment,
       footnoteReference: enterFootnoteReference,
+      footnoteInline: enterFootnoteInline,
       footnoteDefinition: enterFootnoteDefinition,
       blockReference: enterBlockReference,
       mathInline: enterMathInline,
@@ -208,6 +209,17 @@ const enterFootnoteReference: Handle = function(token) {
     type: 'footnoteReference',
     identifier: '',
     value: ''
+  }
+  this.enter(node, token)
+}
+
+const enterFootnoteInline: Handle = function(token) {
+  const node: FootnoteReference = {
+    type: 'footnoteReference',
+    identifier: '',
+    value: '',
+    inline: true,
+    inlineContent: ''
   }
   this.enter(node, token)
 }

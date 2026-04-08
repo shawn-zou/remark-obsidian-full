@@ -47,7 +47,7 @@ export function embed(options?: EmbedOptions): Extension {
       
       if (code === codes.rightSquareBracket) {
         if (size === 0) return nok(code)
-        return close
+        return close(code)
       }
 
       if (code === codes.backslash) {
@@ -80,7 +80,7 @@ export function embed(options?: EmbedOptions): Extension {
       effects.consume(code)
       effects.exit('embedMarker')
       effects.exit('embed')
-      return ok
+      return ok(code)
     }
   }
 
