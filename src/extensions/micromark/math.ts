@@ -20,14 +20,25 @@ export function math(options?: MathOptions): Extension {
       effects.consume(code)
       effects.exit('mathInlineMarker')
       effects.enter('mathInlineValue')
-      return data
+      return afterOpen
+    }
+
+    function afterOpen(code: Code): State | undefined {
+      if (code === codes.dollarSign) return nok(code)
+      if (code === codes.eof) return nok(code)
+      return data(code)
     }
 
     function data(code: Code): State | undefined {
       if (code === codes.eof) return nok(code)
       if (code === codes.dollarSign) {
         if (size === 0) return nok(code)
-        return close(code)
+        effects.exit('mathInlineValue')
+        effects.enter('mathInlineMarker')
+        effects.consume(code)
+        effects.exit('mathInlineMarker')
+        effects.exit('mathInline')
+        return ok(code)
       }
       if (code === codes.backslash) {
         effects.consume(code)
@@ -44,77 +55,9 @@ export function math(options?: MathOptions): Extension {
       effects.consume(code)
       return data
     }
-
-    function close(code: Code): State | undefined {
-      if (code !== codes.dollarSign) return nok(code)
-      effects.exit('mathInlineValue')
-      effects.enter('mathInlineMarker')
-      effects.consume(code)
-      effects.exit('mathInlineMarker')
-      effects.exit('mathInline')
-      return ok(code)
-    }
   }
 
-  const tokenizeBlock: Tokenizer = function(effects, ok, nok) {
-    let size = 0
-
-    return start
-
-    function start(code: Code): State | undefined {
-      if (code !== codes.dollarSign) return nok(code)
-      effects.enter('mathBlock')
-      effects.enter('mathBlockFence')
-      effects.consume(code)
-      return openSecond
-    }
-
-    function openSecond(code: Code): State | undefined {
-      if (code !== codes.dollarSign) {
-        effects.exit('mathBlockFence')
-        effects.exit('mathBlock')
-        return nok(code)
-      }
-      effects.consume(code)
-      effects.exit('mathBlockFence')
-      effects.enter('mathBlockValue')
-      return data
-    }
-
-    function data(code: Code): State | undefined {
-      if (code === codes.eof) return nok(code)
-      if (code === codes.dollarSign) {
-        return closeFirst
-      }
-      effects.consume(code)
-      return data
-    }
-
-    function closeFirst(code: Code): State | undefined {
-      if (code !== codes.dollarSign) return nok(code)
-      effects.exit('mathBlockValue')
-      effects.enter('mathBlockFence')
-      effects.consume(code)
-      return closeSecond
-    }
-
-    function closeSecond(code: Code): State | undefined {
-      if (code !== codes.dollarSign) return nok(code)
-      effects.consume(code)
-      effects.exit('mathBlockFence')
-      effects.exit('mathBlock')
-      return ok(code)
-    }
-  }
-
-  const extensions: Extension = {
-    flow: {
-      [codes.dollarSign]: {
-        name: 'mathBlock',
-        tokenize: tokenizeBlock
-      }
-    }
-  }
+  const extensions: Extension = {}
 
   if (singleDollarTextMath) {
     extensions.text = {

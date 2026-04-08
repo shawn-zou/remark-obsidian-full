@@ -17,9 +17,7 @@ export function obsidianFromMarkdown(): FromMarkdownExtension {
       footnoteReference: enterFootnoteReference,
       footnoteInline: enterFootnoteInline,
       footnoteDefinition: enterFootnoteDefinition,
-      blockReference: enterBlockReference,
-      mathInline: enterMathInline,
-      mathBlock: enterMathBlock
+      blockReference: enterBlockReference
     },
     exit: {
       wikiLinkValue: exitWikiLinkValue,
@@ -43,11 +41,7 @@ export function obsidianFromMarkdown(): FromMarkdownExtension {
       footnoteDefinitionValue: exitFootnoteDefinitionValue,
       footnoteDefinition: exitFootnoteDefinition,
       blockReferenceId: exitBlockReferenceId,
-      blockReference: exitBlockReference,
-      mathInlineValue: exitMathInlineValue,
-      mathInline: exitMathInline,
-      mathBlockValue: exitMathBlockValue,
-      mathBlock: exitMathBlock
+      blockReference: exitBlockReference
     }
   }
 }
@@ -283,46 +277,6 @@ const exitBlockReferenceId: Handle = function(token) {
 }
 
 const exitBlockReference: Handle = function(token) {
-  this.exit(token)
-}
-
-const enterMathInline: Handle = function(token) {
-  const node: Math = {
-    type: 'math',
-    value: '',
-    inline: true
-  }
-  this.enter(node, token)
-}
-
-const enterMathBlock: Handle = function(token) {
-  const node: Math = {
-    type: 'math',
-    value: '',
-    inline: false
-  }
-  this.enter(node, token)
-}
-
-const exitMathInlineValue: Handle = function(token) {
-  const node = getTopNode<Math>(this.stack)
-  if (node) {
-    node.value = this.sliceSerialize(token)
-  }
-}
-
-const exitMathBlockValue: Handle = function(token) {
-  const node = getTopNode<Math>(this.stack)
-  if (node) {
-    node.value = this.sliceSerialize(token)
-  }
-}
-
-const exitMathInline: Handle = function(token) {
-  this.exit(token)
-}
-
-const exitMathBlock: Handle = function(token) {
   this.exit(token)
 }
 

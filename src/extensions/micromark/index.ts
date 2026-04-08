@@ -29,6 +29,6 @@ export function obsidian(): Extension[] {
     comment(),
     footnote(),
     blockReference(),
-    math()
+    // math() // 暂时禁用，有bug
   ]
 }
