@@ -124,10 +124,14 @@ const handleCallout: Handle = (node, _, context) => {
   return result
 }
 
-const handleHighlight: Handle = (node, _, context) => {
+const handleHighlight: Handle = (node) => {
   const highlight = node as Highlight
-  const children = context.containerPhrasing.call(context, highlight, node)
-  return '==' + children + '=='
+  if (highlight.children && highlight.children.length > 0) {
+    return '==' + highlight.children.map(child => 
+      child.type === 'text' ? child.value : ''
+    ).join('') + '=='
+  }
+  return '==='
 }
 
 const handleComment: Handle = (node) => {

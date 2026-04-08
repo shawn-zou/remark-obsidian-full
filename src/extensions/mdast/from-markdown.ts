@@ -14,10 +14,13 @@ export function obsidianFromMarkdown(): FromMarkdownExtension {
       callout: enterCallout,
       highlight: enterHighlight,
       comment: enterComment,
+      commentBlock: enterComment,
       footnoteReference: enterFootnoteReference,
       footnoteInline: enterFootnoteInline,
       footnoteDefinition: enterFootnoteDefinition,
-      blockReference: enterBlockReference
+      blockReference: enterBlockReference,
+      mathInline: enterMathInline,
+      mathBlock: enterMathBlock
     },
     exit: {
       wikiLinkValue: exitWikiLinkValue,
@@ -27,12 +30,15 @@ export function obsidianFromMarkdown(): FromMarkdownExtension {
       tagValue: exitTagValue,
       tag: exitTag,
       calloutType: exitCalloutType,
+      calloutFoldable: exitCalloutFoldable,
       calloutTitle: exitCalloutTitle,
       callout: exitCallout,
       highlightValue: exitHighlightValue,
       highlight: exitHighlight,
       commentValue: exitCommentValue,
+      commentMarker: exitCommentMarker,
       comment: exitComment,
+      commentBlock: exitComment,
       footnoteReferenceId: exitFootnoteReferenceId,
       footnoteReference: exitFootnoteReference,
       footnoteInlineValue: exitFootnoteInlineValue,
@@ -41,7 +47,11 @@ export function obsidianFromMarkdown(): FromMarkdownExtension {
       footnoteDefinitionValue: exitFootnoteDefinitionValue,
       footnoteDefinition: exitFootnoteDefinition,
       blockReferenceId: exitBlockReferenceId,
-      blockReference: exitBlockReference
+      blockReference: exitBlockReference,
+      mathInlineValue: exitMathInlineValue,
+      mathInline: exitMathInline,
+      mathBlockValue: exitMathBlockValue,
+      mathBlock: exitMathBlock
     }
   }
 }
@@ -136,11 +146,17 @@ const enterCallout: Handle = function(token) {
 
 const exitCalloutType: Handle = function(token) {
   const raw = this.sliceSerialize(token)
-  const parsed = parseCalloutType(raw)
   const node = getTopNode<Callout>(this.stack)
   if (node) {
-    node.calloutType = parsed.type
-    node.foldable = parsed.foldable
+    node.calloutType = raw.toLowerCase()
+  }
+}
+
+const exitCalloutFoldable: Handle = function(token) {
+  const raw = this.sliceSerialize(token)
+  const node = getTopNode<Callout>(this.stack)
+  if (node && (raw === '+' || raw === '-')) {
+    node.foldable = raw
   }
 }
 
@@ -190,7 +206,17 @@ const enterComment: Handle = function(token) {
 const exitCommentValue: Handle = function(token) {
   const node = getTopNode<Comment>(this.stack)
   if (node) {
-    node.value = this.sliceSerialize(token)
+    node.value += this.sliceSerialize(token)
+  }
+}
+
+const exitCommentMarker: Handle = function(token) {
+  const node = getTopNode<Comment>(this.stack)
+  if (node && token.type === 'commentMarker') {
+    const marker = this.sliceSerialize(token)
+    if (marker === '%' && this.stack.length > 0) {
+      node.value += '%'
+    }
   }
 }
 
@@ -277,6 +303,46 @@ const exitBlockReferenceId: Handle = function(token) {
 }
 
 const exitBlockReference: Handle = function(token) {
+  this.exit(token)
+}
+
+const enterMathInline: Handle = function(token) {
+  const node: Math = {
+    type: 'math',
+    value: '',
+    inline: true
+  }
+  this.enter(node, token)
+}
+
+const exitMathInlineValue: Handle = function(token) {
+  const node = getTopNode<Math>(this.stack)
+  if (node) {
+    node.value = this.sliceSerialize(token)
+  }
+}
+
+const exitMathInline: Handle = function(token) {
+  this.exit(token)
+}
+
+const enterMathBlock: Handle = function(token) {
+  const node: Math = {
+    type: 'math',
+    value: '',
+    inline: false
+  }
+  this.enter(node, token)
+}
+
+const exitMathBlockValue: Handle = function(token) {
+  const node = getTopNode<Math>(this.stack)
+  if (node) {
+    node.value = this.sliceSerialize(token)
+  }
+}
+
+const exitMathBlock: Handle = function(token) {
   this.exit(token)
 }
 

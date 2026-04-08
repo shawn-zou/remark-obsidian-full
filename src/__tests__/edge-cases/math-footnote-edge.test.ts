@@ -15,11 +15,11 @@ describe('Math Edge Cases', () => {
   }
 
   describe('Inline Math', () => {
-    it('should not parse inline math (not supported yet)', async () => {
+    it('should parse inline math', async () => {
       const ast = await parser.parse('$x = y$')
       const paragraph = ast.children[0]
       const firstChild = (paragraph as any).children?.[0]
-      expect(firstChild?.type).not.toBe('math')
+      expect(firstChild?.type).toBe('math')
     })
 
     it('should parse empty inline math as invalid', async () => {
@@ -66,20 +66,23 @@ describe('Math Edge Cases', () => {
 
   describe('Block Math', () => {
     it('should not parse block math (not supported yet)', async () => {
-      const ast = await parser.parse('$$\nx = y\n$$')
-      const firstChild = ast.children[0]
+      const ast = await parser.parse('$$x = y$$')
+      const paragraph = ast.children[0]
+      const firstChild = (paragraph as any).children?.[0]
       expect(firstChild?.type).not.toBe('math')
     })
 
     it('should not parse block math with multiple lines (not supported yet)', async () => {
-      const ast = await parser.parse('$$\nx = y\nz = a\n$$')
-      const firstChild = ast.children[0]
+      const ast = await parser.parse('$$x = y\nz = a$$')
+      const paragraph = ast.children[0]
+      const firstChild = (paragraph as any).children?.[0]
       expect(firstChild?.type).not.toBe('math')
     })
 
     it('should not parse block math with complex formula (not supported yet)', async () => {
-      const ast = await parser.parse('$$\n\\int_a^b f(x) dx\n$$')
-      const firstChild = ast.children[0]
+      const ast = await parser.parse('$$\int_a^b f(x) dx$$')
+      const paragraph = ast.children[0]
+      const firstChild = (paragraph as any).children?.[0]
       expect(firstChild?.type).not.toBe('math')
     })
   })

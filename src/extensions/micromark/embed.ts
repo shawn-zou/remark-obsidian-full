@@ -224,15 +224,7 @@ export function parseEmbedValue(value: string, aliasDivider: string = '|'): {
   let width: number | undefined
   let height: number | undefined
 
-  const sizeMatch = value.match(new RegExp(`\\${aliasDivider}(\\d+)(?:x(\\d+))?$`))
-  if (sizeMatch) {
-    width = parseInt(sizeMatch[1], 10)
-    if (sizeMatch[2]) {
-      height = parseInt(sizeMatch[2], 10)
-    }
-    value = value.slice(0, -sizeMatch[0].length)
-  }
-
+  // 先处理 blockId 和 heading
   const blockIdMatch = value.match(/#\^([a-zA-Z0-9\-]+)$/)
   if (blockIdMatch) {
     const hashIndex = value.lastIndexOf('#')
@@ -248,6 +240,22 @@ export function parseEmbedValue(value: string, aliasDivider: string = '|'): {
         heading = headingMatch[1]
         value = value.slice(0, -headingMatch[0].length)
       }
+    }
+  }
+
+  // 处理 width+alias 组合
+  const parts = value.split(aliasDivider)
+  if (parts.length > 1) {
+    const lastPart = parts[parts.length - 1]
+    const sizeMatch = lastPart.match(/^(\d+)(?:x(\d+))?$/)
+    
+    if (sizeMatch) {
+      // 这是尺寸
+      width = parseInt(sizeMatch[1], 10)
+      if (sizeMatch[2]) {
+        height = parseInt(sizeMatch[2], 10)
+      }
+      value = parts.slice(0, -1).join(aliasDivider)
     }
   }
 

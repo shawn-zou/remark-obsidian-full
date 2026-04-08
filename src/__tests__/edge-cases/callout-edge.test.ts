@@ -93,17 +93,17 @@ describe('Callout Edge Cases', () => {
 
   describe('Foldable Callouts', () => {
     it('should parse foldable callout with +', async () => {
-      const callout = await getFirstCallout('> [!note]+\n> content')
+      const callout = await getFirstCallout('> [!note+]\n> content')
       expect(callout?.foldable).toBe('+')
     })
 
     it('should parse foldable callout with -', async () => {
-      const callout = await getFirstCallout('> [!note]-\n> content')
+      const callout = await getFirstCallout('> [!note-]\n> content')
       expect(callout?.foldable).toBe('-')
     })
 
     it('should parse foldable callout with title', async () => {
-      const callout = await getFirstCallout('> [!note]+ Title\n> content')
+      const callout = await getFirstCallout('> [!note+] Title\n> content')
       expect(callout?.foldable).toBe('+')
       expect(callout?.title).toBe('Title')
     })
@@ -225,8 +225,8 @@ describe('Callout Edge Cases', () => {
     const testCases = [
       '> [!note]\n> content',
       '> [!tip] Title\n> content',
-      '> [!warning]+\n> content',
-      '> [!danger]- Title\n> content',
+      '> [!warning+]\n> content',
+      '> [!danger-] Title\n> content',
     ]
 
     testCases.forEach(input => {

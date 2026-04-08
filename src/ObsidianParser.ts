@@ -61,6 +61,12 @@ export class ObsidianParser {
     const processor = unified()
       .use(remarkParse)
     
+    const micromarkExtensions = obsidianMicromark()
+    const fromMarkdownExtensions = [obsidianFromMarkdown()]
+    
+    processor.data('micromarkExtensions', micromarkExtensions)
+    processor.data('fromMarkdownExtensions', fromMarkdownExtensions)
+    
     if (this.config.syntax?.gfm !== false) {
       processor.use(remarkGfm)
     }
@@ -69,21 +75,15 @@ export class ObsidianParser {
       processor.use(remarkFrontmatter, ['yaml'])
     }
     
-    const micromarkExtensions = obsidianMicromark()
-	const fromMarkdownExtensions = [obsidianFromMarkdown()]
-	
-	processor.data('micromarkExtensions', micromarkExtensions)
-	processor.data('fromMarkdownExtensions', fromMarkdownExtensions)
-	
-	const pluginMicromarkExtensions = this.pluginManager.getMicromarkExtensions()
-	const pluginFromMarkdownExtensions = this.pluginManager.getFromMarkdownExtensions()
-	
-	if (pluginMicromarkExtensions.length > 0) {
-		processor.data('micromarkExtensions', [...micromarkExtensions, ...pluginMicromarkExtensions])
-	}
-	if (pluginFromMarkdownExtensions.length > 0) {
-		processor.data('fromMarkdownExtensions', [...fromMarkdownExtensions, ...pluginFromMarkdownExtensions])
-	}
+    const pluginMicromarkExtensions = this.pluginManager.getMicromarkExtensions()
+    const pluginFromMarkdownExtensions = this.pluginManager.getFromMarkdownExtensions()
+    
+    if (pluginMicromarkExtensions.length > 0) {
+      processor.data('micromarkExtensions', [...processor.data('micromarkExtensions') || [], ...pluginMicromarkExtensions])
+    }
+    if (pluginFromMarkdownExtensions.length > 0) {
+      processor.data('fromMarkdownExtensions', [...processor.data('fromMarkdownExtensions') || [], ...pluginFromMarkdownExtensions])
+    }
     
     return processor
   }

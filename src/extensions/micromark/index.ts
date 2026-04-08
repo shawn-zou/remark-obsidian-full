@@ -21,14 +21,14 @@ import type { Extension } from 'micromark-util-types'
 
 export function obsidian(): Extension[] {
   return [
+    callout(),
     wikiLink(),
     embed(),
     tag(),
-    callout(),
     highlight(),
     comment(),
     footnote(),
     blockReference(),
-    // math() // 暂时禁用，有bug
+    math()
   ]
 }
