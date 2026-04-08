@@ -46,6 +46,8 @@ export function footnote(): Extension {
   }
 
   const tokenizeInline: Tokenizer = function(effects, ok, nok) {
+    let size = 0
+
     return start
 
     function start(code: Code): State | undefined {
@@ -69,18 +71,21 @@ export function footnote(): Extension {
     function data(code: Code): State | undefined {
       if (code === codes.eof) return nok(code)
       if (code === codes.rightSquareBracket) {
+        if (size === 0) return nok(code)
         return close(code)
       }
       if (code === codes.backslash) {
         effects.consume(code)
         return escape
       }
+      size++
       effects.consume(code)
       return data
     }
 
     function escape(code: Code): State | undefined {
       if (code === codes.eof) return nok(code)
+      size++
       effects.consume(code)
       return data
     }

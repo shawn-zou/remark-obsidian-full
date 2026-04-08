@@ -27,7 +27,10 @@ export function highlight(): Extension {
       if (code === codes.eof) return nok(code)
       if (code === codes.equalsTo) {
         if (size === 0) return nok(code)
-        return close(code)
+        effects.exit('highlightValue')
+        effects.enter('highlightMarker')
+        effects.consume(code)
+        return closeStart
       }
       if (code === codes.backslash) {
         effects.consume(code)
@@ -45,16 +48,14 @@ export function highlight(): Extension {
       return data
     }
 
-    function close(code: Code): State | undefined {
-      if (code !== codes.equalsTo) return nok(code)
-      effects.consume(code)
-      return closeEnd
-    }
-
-    function closeEnd(code: Code): State | undefined {
-      if (code !== codes.equalsTo) return nok(code)
-      effects.exit('highlightValue')
-      effects.enter('highlightMarker')
+    function closeStart(code: Code): State | undefined {
+      if (code !== codes.equalsTo) {
+        effects.exit('highlightMarker')
+        effects.enter('highlightValue')
+        size++
+        effects.consume(code)
+        return data
+      }
       effects.consume(code)
       effects.exit('highlightMarker')
       effects.exit('highlight')

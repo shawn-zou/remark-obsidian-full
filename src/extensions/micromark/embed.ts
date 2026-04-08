@@ -11,6 +11,10 @@ export function embed(options?: EmbedOptions): Extension {
 
   const tokenize: Tokenizer = function(effects, ok, nok) {
     let size = 0
+    let hasHeading = false
+    let hasBlockId = false
+    let headingSize = 0
+    let blockIdSize = 0
 
     return start
 
@@ -55,6 +59,12 @@ export function embed(options?: EmbedOptions): Extension {
         return escape
       }
 
+      if (code === codes.numberSign) {
+        hasHeading = true
+        effects.consume(code)
+        return headingStart
+      }
+
       size++
       effects.consume(code)
       return data
@@ -65,6 +75,113 @@ export function embed(options?: EmbedOptions): Extension {
       size++
       effects.consume(code)
       return data
+    }
+
+    function close(code: Code): State | undefined {
+      if (code !== codes.rightSquareBracket) return nok(code)
+      effects.exit('embedValue')
+      effects.enter('embedMarker')
+      effects.consume(code)
+      return closeEnd
+    }
+
+    function closeEnd(code: Code): State | undefined {
+      if (code !== codes.rightSquareBracket) return nok(code)
+      effects.consume(code)
+      effects.exit('embedMarker')
+      effects.exit('embed')
+      return ok(code)
+    }
+
+    function headingStart(code: Code): State | undefined {
+      if (code === codes.caret) {
+        hasBlockId = true
+        effects.consume(code)
+        return blockId
+      }
+      if (code === codes.rightSquareBracket) {
+        return nok(code)
+      }
+      if (code === codes.backslash) {
+        effects.consume(code)
+        return headingEscape
+      }
+      headingSize++
+      effects.consume(code)
+      return heading
+    }
+
+    function heading(code: Code): State | undefined {
+      if (code === codes.eof) return nok(code)
+      if (code === codes.rightSquareBracket) {
+        if (headingSize === 0) return nok(code)
+        return close(code)
+      }
+      if (code === codes.backslash) {
+        effects.consume(code)
+        return headingEscape
+      }
+      if (code === aliasDivider.charCodeAt(0)) {
+        if (headingSize === 0) return nok(code)
+        effects.consume(code)
+        return afterDivider
+      }
+      headingSize++
+      effects.consume(code)
+      return heading
+    }
+
+    function headingEscape(code: Code): State | undefined {
+      if (code === codes.eof) return nok(code)
+      headingSize++
+      effects.consume(code)
+      return heading
+    }
+
+    function blockId(code: Code): State | undefined {
+      if (code === codes.eof) return nok(code)
+      if (code === codes.rightSquareBracket) {
+        if (blockIdSize === 0) return nok(code)
+        return close(code)
+      }
+      if (code === aliasDivider.charCodeAt(0)) {
+        if (blockIdSize === 0) return nok(code)
+        effects.consume(code)
+        return afterDivider
+      }
+      if (code === codes.backslash) {
+        effects.consume(code)
+        return blockIdEscape
+      }
+      blockIdSize++
+      effects.consume(code)
+      return blockId
+    }
+
+    function blockIdEscape(code: Code): State | undefined {
+      if (code === codes.eof) return nok(code)
+      blockIdSize++
+      effects.consume(code)
+      return blockId
+    }
+
+    function afterDivider(code: Code): State | undefined {
+      if (code === codes.eof) return nok(code)
+      if (code === codes.rightSquareBracket) {
+        return close(code)
+      }
+      if (code === codes.backslash) {
+        effects.consume(code)
+        return afterDividerEscape
+      }
+      effects.consume(code)
+      return afterDivider
+    }
+
+    function afterDividerEscape(code: Code): State | undefined {
+      if (code === codes.eof) return nok(code)
+      effects.consume(code)
+      return afterDivider
     }
 
     function close(code: Code): State | undefined {
@@ -118,13 +235,19 @@ export function parseEmbedValue(value: string, aliasDivider: string = '|'): {
 
   const blockIdMatch = value.match(/#\^([a-zA-Z0-9\-]+)$/)
   if (blockIdMatch) {
-    blockId = blockIdMatch[1]
-    value = value.slice(0, -blockIdMatch[0].length)
+    const hashIndex = value.lastIndexOf('#')
+    if (hashIndex > 0 && value[hashIndex - 1] !== '\\') {
+      blockId = blockIdMatch[1]
+      value = value.slice(0, -blockIdMatch[0].length)
+    }
   } else {
     const headingMatch = value.match(/#([^#]+)$/)
     if (headingMatch) {
-      heading = headingMatch[1]
-      value = value.slice(0, -headingMatch[0].length)
+      const hashIndex = value.lastIndexOf('#')
+      if (hashIndex > 0 && value[hashIndex - 1] !== '\\') {
+        heading = headingMatch[1]
+        value = value.slice(0, -headingMatch[0].length)
+      }
     }
   }
 

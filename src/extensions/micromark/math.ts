@@ -84,7 +84,7 @@ export function math(options?: MathOptions): Extension {
     function data(code: Code): State | undefined {
       if (code === codes.eof) return nok(code)
       if (code === codes.dollarSign) {
-        return closeFirst(code)
+        return closeFirst
       }
       effects.consume(code)
       return data
@@ -92,14 +92,14 @@ export function math(options?: MathOptions): Extension {
 
     function closeFirst(code: Code): State | undefined {
       if (code !== codes.dollarSign) return nok(code)
+      effects.exit('mathBlockValue')
+      effects.enter('mathBlockFence')
       effects.consume(code)
       return closeSecond
     }
 
     function closeSecond(code: Code): State | undefined {
       if (code !== codes.dollarSign) return nok(code)
-      effects.exit('mathBlockValue')
-      effects.enter('mathBlockFence')
       effects.consume(code)
       effects.exit('mathBlockFence')
       effects.exit('mathBlock')

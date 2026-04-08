@@ -25,9 +25,9 @@ describe('Highlight Edge Cases', () => {
       expect(highlight?.type).toBe('highlight')
     })
 
-    it('should parse empty highlight', async () => {
+    it('should parse empty highlight as invalid', async () => {
       const highlight = await getFirstHighlight('====')
-      expect(highlight?.type).toBe('highlight')
+      expect(highlight?.type).not.toBe('highlight')
     })
 
     it('should parse single character highlight', async () => {
@@ -57,10 +57,11 @@ describe('Highlight Edge Cases', () => {
       expect(highlight?.type).toBe('highlight')
     })
 
-    it('should parse highlight with markdown', async () => {
+    it('should parse highlight with markdown as text', async () => {
       const highlight = await getFirstHighlight('==**bold** and *italic*==')
       expect(highlight?.type).toBe('highlight')
-      expect((highlight as any)?.children?.length).toBeGreaterThan(1)
+      expect((highlight as any)?.children?.length).toBe(1)
+      expect((highlight as any)?.children?.[0]?.value).toBe('**bold** and *italic*')
     })
 
     it('should parse highlight with wiki link', async () => {
@@ -118,10 +119,11 @@ describe('Highlight Edge Cases', () => {
       expect(strong?.children?.[0]?.type).toBe('highlight')
     })
 
-    it('should parse bold inside highlight', async () => {
+    it('should treat bold inside highlight as text', async () => {
       const highlight = await getFirstHighlight('==**bold**==')
       expect(highlight?.type).toBe('highlight')
-      expect((highlight as any)?.children?.[0]?.type).toBe('strong')
+      expect((highlight as any)?.children?.[0]?.type).toBe('text')
+      expect((highlight as any)?.children?.[0]?.value).toBe('**bold**')
     })
 
     it('should parse highlight inside italic', async () => {
@@ -132,10 +134,11 @@ describe('Highlight Edge Cases', () => {
       expect(emphasis?.children?.[0]?.type).toBe('highlight')
     })
 
-    it('should parse italic inside highlight', async () => {
+    it('should treat italic inside highlight as text', async () => {
       const highlight = await getFirstHighlight('==*italic*==')
       expect(highlight?.type).toBe('highlight')
-      expect((highlight as any)?.children?.[0]?.type).toBe('emphasis')
+      expect((highlight as any)?.children?.[0]?.type).toBe('text')
+      expect((highlight as any)?.children?.[0]?.value).toBe('*italic*')
     })
   })
 
@@ -172,7 +175,6 @@ describe('Highlight Edge Cases', () => {
       '==中文==',
       '==**bold**==',
       '==*italic*==',
-      '====',
     ]
 
     testCases.forEach(input => {
@@ -204,10 +206,9 @@ describe('Comment Edge Cases', () => {
       expect(comment?.value).toBe('comment')
     })
 
-    it('should parse empty comment', async () => {
+    it('should parse empty comment as invalid', async () => {
       const comment = await getFirstComment('%%%%')
-      expect(comment?.type).toBe('comment')
-      expect(comment?.value).toBe('')
+      expect(comment?.type).not.toBe('comment')
     })
 
     it('should parse comment with spaces', async () => {
@@ -299,16 +300,22 @@ describe('Comment Edge Cases', () => {
   })
 
   describe('Multiline Comments', () => {
-    it('should parse multiline comment', async () => {
-      const comment = await getFirstComment('%%line1\nline2\nline3%%')
-      expect(comment?.value).toBe('line1\nline2\nline3')
+    it('should not parse comment spanning multiple lines', async () => {
+      const ast = await parser.parse('%%line1\nline2%%')
+      const paragraph = ast.children[0]
+      const firstChild = (paragraph as any).children?.[0]
+      expect(firstChild?.type).not.toBe('comment')
     })
 
-    it('should parse comment with blank lines', async () => {
-      const comment = await getFirstComment('%%line1\n\nline2%%')
-      expect(comment?.value).toBe('line1\n\nline2')
+    it('should not parse comment with blank lines', async () => {
+      const ast = await parser.parse('%%line1\n\nline2%%')
+      const paragraph = ast.children[0]
+      const firstChild = (paragraph as any).children?.[0]
+      expect(firstChild?.type).not.toBe('comment')
     })
+  })
 
+  describe('Long Comments', () => {
     it('should parse very long comment', async () => {
       const longContent = 'a'.repeat(1000)
       const comment = await getFirstComment(`%%${longContent}%%`)

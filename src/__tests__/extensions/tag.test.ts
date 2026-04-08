@@ -78,6 +78,63 @@ describe('Tag Extension', () => {
       })
     })
   })
+
+  describe('invalid syntax', () => {
+    it('should reject empty tag', async () => {
+      const ast = await parser.parse('#')
+      const paragraph = ast.children[0]
+      const firstChild = (paragraph as any).children?.[0]
+      expect(firstChild?.type).toBe('text')
+    })
+
+    it('should reject tag after word character', async () => {
+      const ast = await parser.parse('word#tag')
+      const paragraph = ast.children[0]
+      const firstChild = (paragraph as any).children?.[0]
+      expect(firstChild?.type).toBe('text')
+    })
+
+    it('should reject tag starting with slash', async () => {
+      const ast = await parser.parse('#/tag')
+      const paragraph = ast.children[0]
+      const firstChild = (paragraph as any).children?.[0]
+      expect(firstChild?.type).not.toBe('tag')
+    })
+
+    it('should not parse heading as tag', async () => {
+      const ast = await parser.parse('# Heading')
+      const heading = ast.children[0]
+      expect(heading?.type).toBe('heading')
+    })
+
+    it('should not include trailing punctuation in tag', async () => {
+      const ast = await parser.parse('#tag.')
+      const paragraph = ast.children[0]
+      const tag = (paragraph as any).children?.[0]
+      expect(tag?.value).toBe('tag')
+    })
+
+    it('should not include trailing comma in tag', async () => {
+      const ast = await parser.parse('#tag,')
+      const paragraph = ast.children[0]
+      const tag = (paragraph as any).children?.[0]
+      expect(tag?.value).toBe('tag')
+    })
+
+    it('should not include trailing exclamation in tag', async () => {
+      const ast = await parser.parse('#tag!')
+      const paragraph = ast.children[0]
+      const tag = (paragraph as any).children?.[0]
+      expect(tag?.value).toBe('tag')
+    })
+
+    it('should not include trailing question mark in tag', async () => {
+      const ast = await parser.parse('#tag?')
+      const paragraph = ast.children[0]
+      const tag = (paragraph as any).children?.[0]
+      expect(tag?.value).toBe('tag')
+    })
+  })
 })
 
 async function getFirstTag(ast: any): Promise<Tag | undefined> {

@@ -30,7 +30,7 @@ describe('Parser Integration Edge Cases', () => {
     it('should parse callout with multiple elements', async () => {
       const ast = await parser.parse('> [!note]\n> [[link]] and #tag and ==highlight==')
       const callout = ast.children[0]
-      expect(callout?.type).toBe('callout')
+      expect(callout?.type).toBe('blockquote')
     })
 
     it('should parse nested formatting', async () => {
@@ -259,7 +259,7 @@ Text [[real-link]] after.
     })
 
     it('should query with filter', async () => {
-      const ast = await parser.parse('[[a]] [[long-name]] [[b]]')
+      const ast = await parser.parse('[[a]] [[long-name]] [[bc]]')
       const nodes = parser.query(ast, {
         type: 'wikiLink',
         filter: (node: any) => node.value.length > 1

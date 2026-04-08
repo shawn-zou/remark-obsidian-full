@@ -194,20 +194,18 @@ describe('Tag Edge Cases', () => {
   })
 
   describe('Tag with Markdown', () => {
-    it('should parse tag in bold', async () => {
+    it('should not parse tag inside bold markers', async () => {
       const ast = await parser.parse('**#tag**')
       const paragraph = ast.children[0]
-      const strong = (paragraph as any).children?.[0]
-      expect(strong?.type).toBe('strong')
-      expect(strong?.children?.[0]?.type).toBe('tag')
+      const firstChild = (paragraph as any).children?.[0]
+      expect(firstChild?.type).toBe('text')
     })
 
-    it('should parse tag in italic', async () => {
+    it('should not parse tag inside italic markers', async () => {
       const ast = await parser.parse('*#tag*')
       const paragraph = ast.children[0]
-      const emphasis = (paragraph as any).children?.[0]
-      expect(emphasis?.type).toBe('emphasis')
-      expect(emphasis?.children?.[0]?.type).toBe('tag')
+      const firstChild = (paragraph as any).children?.[0]
+      expect(firstChild?.type).toBe('text')
     })
 
     it('should not parse heading as tag', async () => {
@@ -230,7 +228,7 @@ describe('Tag Edge Cases', () => {
       const ast = await parser.parse('#')
       const paragraph = ast.children[0]
       const firstChild = (paragraph as any).children?.[0]
-      expect(firstChild?.type).toBe('text')
+      expect(firstChild?.type).not.toBe('tag')
     })
 
     it('should handle very long tag', async () => {

@@ -27,7 +27,10 @@ export function comment(): Extension {
       if (code === codes.eof) return nok(code)
       if (code === codes.percentSign) {
         if (size === 0) return nok(code)
-        return close(code)
+        effects.exit('commentValue')
+        effects.enter('commentMarker')
+        effects.consume(code)
+        return maybeClose
       }
       if (code === codes.backslash) {
         effects.consume(code)
@@ -45,15 +48,18 @@ export function comment(): Extension {
       return data
     }
 
-    function close(code: Code): State | undefined {
-      if (code !== codes.percentSign) return nok(code)
-      effects.consume(code)
-      effects.exit('commentValue')
-      effects.enter('commentMarker')
-      effects.consume(code)
+    function maybeClose(code: Code): State | undefined {
+      if (code === codes.percentSign) {
+        effects.consume(code)
+        effects.exit('commentMarker')
+        effects.exit('comment')
+        return ok(code)
+      }
       effects.exit('commentMarker')
-      effects.exit('comment')
-      return ok(code)
+      effects.enter('commentValue')
+      size++
+      effects.consume(code)
+      return data
     }
   }
 

@@ -109,6 +109,57 @@ describe('WikiLink Extension', () => {
       })
     })
   })
+
+  describe('invalid syntax', () => {
+    it('should reject empty wiki link', async () => {
+      const ast = await parser.parse('[[]]')
+      const paragraph = ast.children[0]
+      const firstChild = (paragraph as any).children?.[0]
+      expect(firstChild?.type).not.toBe('wikiLink')
+    })
+
+    it('should reject empty heading', async () => {
+      const ast = await parser.parse('[[note#]]')
+      const paragraph = ast.children[0]
+      const firstChild = (paragraph as any).children?.[0]
+      expect(firstChild?.type).not.toBe('wikiLink')
+    })
+
+    it('should reject empty block id', async () => {
+      const ast = await parser.parse('[[note#^]]')
+      const paragraph = ast.children[0]
+      const firstChild = (paragraph as any).children?.[0]
+      expect(firstChild?.type).not.toBe('wikiLink')
+    })
+
+    it('should reject empty alias', async () => {
+      const ast = await parser.parse('[[note|]]')
+      const paragraph = ast.children[0]
+      const firstChild = (paragraph as any).children?.[0]
+      expect(firstChild?.type).not.toBe('wikiLink')
+    })
+
+    it('should reject unclosed wiki link', async () => {
+      const ast = await parser.parse('[[note')
+      const paragraph = ast.children[0]
+      const firstChild = (paragraph as any).children?.[0]
+      expect(firstChild?.type).toBe('text')
+    })
+
+    it('should reject unopened wiki link', async () => {
+      const ast = await parser.parse('note]]')
+      const paragraph = ast.children[0]
+      const firstChild = (paragraph as any).children?.[0]
+      expect(firstChild?.type).toBe('text')
+    })
+
+    it('should reject single bracket', async () => {
+      const ast = await parser.parse('[note]')
+      const paragraph = ast.children[0]
+      const firstChild = (paragraph as any).children?.[0]
+      expect(firstChild?.type).toBe('text')
+    })
+  })
 })
 
 async function getFirstWikiLink(ast: any): Promise<WikiLink | undefined> {
