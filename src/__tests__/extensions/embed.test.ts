@@ -1,5 +1,5 @@
-import { ObsidianParser } from '../ObsidianParser'
-import type { Embed } from '../nodes'
+import { ObsidianParser } from '../../ObsidianParser'
+import type { Embed } from '../../nodes'
 
 describe('Embed Extension', () => {
   const parser = new ObsidianParser()
@@ -79,6 +79,51 @@ describe('Embed Extension', () => {
         const output = await parser.stringify(ast)
         expect(output.trim()).toBe(input)
       })
+    })
+  })
+
+  describe('invalid syntax', () => {
+    it('should reject empty embed', async () => {
+      const ast = await parser.parse('![[]]')
+      const paragraph = ast.children[0]
+      const firstChild = (paragraph as any).children?.[0]
+      expect(firstChild?.type).not.toBe('embed')
+    })
+
+    it('should reject unclosed embed', async () => {
+      const ast = await parser.parse('![[note')
+      const paragraph = ast.children[0]
+      const firstChild = (paragraph as any).children?.[0]
+      expect(firstChild?.type).toBe('text')
+    })
+
+    it('should reject embed without exclamation', async () => {
+      const ast = await parser.parse('[[note]]')
+      const paragraph = ast.children[0]
+      const firstChild = (paragraph as any).children?.[0]
+      expect(firstChild?.type).toBe('wikiLink')
+      expect(firstChild?.type).not.toBe('embed')
+    })
+
+    it('should reject empty heading in embed', async () => {
+      const ast = await parser.parse('![[note#]]')
+      const paragraph = ast.children[0]
+      const firstChild = (paragraph as any).children?.[0]
+      expect(firstChild?.type).not.toBe('embed')
+    })
+
+    it('should reject empty block id in embed', async () => {
+      const ast = await parser.parse('![[note#^]]')
+      const paragraph = ast.children[0]
+      const firstChild = (paragraph as any).children?.[0]
+      expect(firstChild?.type).not.toBe('embed')
+    })
+
+    it('should reject single bracket embed', async () => {
+      const ast = await parser.parse('![note]')
+      const paragraph = ast.children[0]
+      const firstChild = (paragraph as any).children?.[0]
+      expect(firstChild?.type).not.toBe('embed')
     })
   })
 })

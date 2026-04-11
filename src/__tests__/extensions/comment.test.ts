@@ -1,5 +1,5 @@
-import { ObsidianParser } from '../ObsidianParser'
-import type { Comment } from '../nodes'
+import { ObsidianParser } from '../../ObsidianParser'
+import type { Comment } from '../../nodes'
 
 describe('Comment Extension', () => {
   const parser = new ObsidianParser()
@@ -47,6 +47,43 @@ describe('Comment Extension', () => {
         const output = await parser.stringify(ast)
         expect(output.trim()).toBe(input)
       })
+    })
+  })
+
+  describe('invalid syntax', () => {
+    it('should reject empty comment', async () => {
+      const ast = await parser.parse('%%%%')
+      const paragraph = ast.children[0]
+      const firstChild = (paragraph as any).children?.[0]
+      expect(firstChild?.type).not.toBe('comment')
+    })
+
+    it('should reject unclosed comment', async () => {
+      const ast = await parser.parse('%%comment')
+      const paragraph = ast.children[0]
+      const firstChild = (paragraph as any).children?.[0]
+      expect(firstChild?.type).toBe('text')
+    })
+
+    it('should reject unopened comment', async () => {
+      const ast = await parser.parse('comment%%')
+      const paragraph = ast.children[0]
+      const firstChild = (paragraph as any).children?.[0]
+      expect(firstChild?.type).toBe('text')
+    })
+
+    it('should reject single percent marker', async () => {
+      const ast = await parser.parse('%text%')
+      const paragraph = ast.children[0]
+      const firstChild = (paragraph as any).children?.[0]
+      expect(firstChild?.type).not.toBe('comment')
+    })
+
+    it('should reject triple percent marker', async () => {
+      const ast = await parser.parse('%%%text%%%')
+      const paragraph = ast.children[0]
+      const firstChild = (paragraph as any).children?.[0]
+      expect(firstChild?.type).not.toBe('comment')
     })
   })
 })

@@ -1,5 +1,5 @@
-import { ObsidianParser } from '../ObsidianParser'
-import type { Math } from '../nodes'
+import { ObsidianParser } from '../../ObsidianParser'
+import type { Math } from '../../nodes'
 
 describe('Math Extension', () => {
   const parser = new ObsidianParser()
@@ -49,6 +49,43 @@ describe('Math Extension', () => {
         const output = await parser.stringify(ast)
         expect(output.trim()).toBe(input)
       })
+    })
+  })
+
+  describe('invalid syntax', () => {
+    it('should reject empty inline math', async () => {
+      const ast = await parser.parse('$$')
+      const paragraph = ast.children[0]
+      const firstChild = (paragraph as any).children?.[0]
+      expect(firstChild?.type).not.toBe('math')
+    })
+
+    it('should reject unclosed inline math', async () => {
+      const ast = await parser.parse('$E = mc^2')
+      const paragraph = ast.children[0]
+      const firstChild = (paragraph as any).children?.[0]
+      expect(firstChild?.type).toBe('text')
+    })
+
+    it('should reject unopened inline math', async () => {
+      const ast = await parser.parse('E = mc^2$')
+      const paragraph = ast.children[0]
+      const firstChild = (paragraph as any).children?.[0]
+      expect(firstChild?.type).toBe('text')
+    })
+
+    it('should reject math with only spaces', async () => {
+      const ast = await parser.parse('$   $')
+      const paragraph = ast.children[0]
+      const firstChild = (paragraph as any).children?.[0]
+      expect(firstChild?.type).toBe('math')
+      expect(firstChild?.value).toBe('   ')
+    })
+
+    it('should reject unclosed block math', async () => {
+      const ast = await parser.parse('$$\nE = mc^2')
+      const paragraph = ast.children[0]
+      expect(paragraph?.type).not.toBe('math')
     })
   })
 })

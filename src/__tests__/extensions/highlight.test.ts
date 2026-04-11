@@ -1,5 +1,5 @@
-import { ObsidianParser } from '../ObsidianParser'
-import type { Highlight } from '../nodes'
+import { ObsidianParser } from '../../ObsidianParser'
+import type { Highlight } from '../../nodes'
 
 describe('Highlight Extension', () => {
   const parser = new ObsidianParser()
@@ -46,6 +46,43 @@ describe('Highlight Extension', () => {
         const output = await parser.stringify(ast)
         expect(output.trim()).toBe(input)
       })
+    })
+  })
+
+  describe('invalid syntax', () => {
+    it('should reject empty highlight', async () => {
+      const ast = await parser.parse('====')
+      const paragraph = ast.children[0]
+      const firstChild = (paragraph as any).children?.[0]
+      expect(firstChild?.type).not.toBe('highlight')
+    })
+
+    it('should reject unclosed highlight', async () => {
+      const ast = await parser.parse('==text')
+      const paragraph = ast.children[0]
+      const firstChild = (paragraph as any).children?.[0]
+      expect(firstChild?.type).toBe('text')
+    })
+
+    it('should reject unopened highlight', async () => {
+      const ast = await parser.parse('text==')
+      const paragraph = ast.children[0]
+      const firstChild = (paragraph as any).children?.[0]
+      expect(firstChild?.type).toBe('text')
+    })
+
+    it('should reject single equals marker', async () => {
+      const ast = await parser.parse('=text=')
+      const paragraph = ast.children[0]
+      const firstChild = (paragraph as any).children?.[0]
+      expect(firstChild?.type).not.toBe('highlight')
+    })
+
+    it('should reject triple equals marker', async () => {
+      const ast = await parser.parse('===text===')
+      const paragraph = ast.children[0]
+      const firstChild = (paragraph as any).children?.[0]
+      expect(firstChild?.type).not.toBe('highlight')
     })
   })
 })
