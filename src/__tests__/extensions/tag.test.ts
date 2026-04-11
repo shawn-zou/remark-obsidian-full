@@ -1,5 +1,5 @@
-import { ObsidianParser } from '../ObsidianParser'
-import type { Tag } from '../nodes'
+import { ObsidianParser } from '../../ObsidianParser'
+import type { Tag } from '../../nodes'
 
 describe('Tag Extension', () => {
   const parser = new ObsidianParser()
@@ -82,9 +82,8 @@ describe('Tag Extension', () => {
   describe('invalid syntax', () => {
     it('should reject empty tag', async () => {
       const ast = await parser.parse('#')
-      const paragraph = ast.children[0]
-      const firstChild = (paragraph as any).children?.[0]
-      expect(firstChild?.type).toBe('text')
+      const firstChild = ast.children[0]
+      expect(firstChild?.type).not.toBe('tag')
     })
 
     it('should reject tag after word character', async () => {

@@ -1,5 +1,5 @@
-import { ObsidianParser } from '../ObsidianParser'
-import type { WikiLink } from '../nodes'
+import { ObsidianParser } from '../../ObsidianParser'
+import type { WikiLink } from '../../nodes'
 
 describe('Escape Handling', () => {
   const parser = new ObsidianParser()

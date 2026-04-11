@@ -1,4 +1,4 @@
-import { ObsidianParser } from '../ObsidianParser'
+import { ObsidianParser } from '../../ObsidianParser'
 
 describe('Integration Tests', () => {
   const parser = new ObsidianParser()
