@@ -224,49 +224,73 @@ export function parseEmbedValue(value: string, aliasDivider: string = '|'): {
   let width: number | undefined
   let height: number | undefined
 
-  // 先处理 blockId 和 heading
-  const blockIdMatch = value.match(/#\^([a-zA-Z0-9\-]+)$/)
-  if (blockIdMatch) {
-    const hashIndex = value.lastIndexOf('#')
-    if (hashIndex > 0 && value[hashIndex - 1] !== '\\') {
-      blockId = blockIdMatch[1]
-      value = value.slice(0, -blockIdMatch[0].length)
-    }
-  } else {
-    const headingMatch = value.match(/#([^#]+)$/)
-    if (headingMatch) {
-      const hashIndex = value.lastIndexOf('#')
-      if (hashIndex > 0 && value[hashIndex - 1] !== '\\') {
-        heading = headingMatch[1]
-        value = value.slice(0, -headingMatch[0].length)
-      }
+  // 首先处理原始值，不进行 unescape，以便正确识别转义的 #
+  let mainValue = value
+  
+  // 找到所有 | 分隔符
+  const pipeIndices: number[] = []
+  for (let i = 0; i < value.length; i++) {
+    if (value[i] === '|') {
+      pipeIndices.push(i)
     }
   }
-
-  // 处理 width+alias 组合
-  const parts = value.split(aliasDivider)
-  if (parts.length > 1) {
-    const lastPart = parts[parts.length - 1]
-    const sizeMatch = lastPart.match(/^(\d+)(?:x(\d+))?$/)
-    
+  
+  // 从前往后检查是否有尺寸部分
+  for (let i = 0; i < pipeIndices.length; i++) {
+    const pipeIndex = pipeIndices[i]
+    // 检查下一个 | 之前的内容是否是尺寸
+    const nextPipeIndex = pipeIndices[i + 1] || value.length
+    const sizePart = value.slice(pipeIndex + 1, nextPipeIndex)
+    const sizeMatch = sizePart.match(/^\s*(\d+)(?:x(\d+))?\s*$/)
     if (sizeMatch) {
-      // 这是尺寸
       width = parseInt(sizeMatch[1], 10)
       if (sizeMatch[2]) {
         height = parseInt(sizeMatch[2], 10)
       }
-      value = parts.slice(0, -1).join(aliasDivider)
+      // 重建 mainValue，移除尺寸部分
+      mainValue = value.slice(0, pipeIndex) + value.slice(nextPipeIndex)
+      break
     }
   }
 
-  const rawValue = value
+  // 现在处理 mainValue 中的 blockId 和 heading
+  let lastHashIndex = -1
+  
+  // 找到最后一个未被转义的 #
+  for (let i = mainValue.length - 1; i >= 0; i--) {
+    if (mainValue[i] === '#' && (i === 0 || mainValue[i - 1] !== '\\')) {
+      lastHashIndex = i
+      break
+    }
+  }
+  
+  let actualValue = mainValue
+  
+  if (lastHashIndex !== -1) {
+    // 检查是否是 blockId
+    if (lastHashIndex + 1 < mainValue.length && mainValue[lastHashIndex + 1] === '^') {
+      const blockIdMatch = mainValue.slice(lastHashIndex).match(/^#\^([a-zA-Z0-9\-]+)$/)
+      if (blockIdMatch) {
+        blockId = blockIdMatch[1]
+        actualValue = mainValue.slice(0, lastHashIndex)
+      }
+    } else {
+      // 检查是否是 heading
+      const headingMatch = mainValue.slice(lastHashIndex).match(/^#([^#]+)$/)
+      if (headingMatch) {
+        heading = headingMatch[1]
+        actualValue = mainValue.slice(0, lastHashIndex)
+      }
+    }
+  }
 
+  // 最后对各个部分进行 unescape 处理
   return {
-    value: unescapeWikiLink(value),
+    value: unescapeWikiLink(actualValue),
     heading: heading ? unescapeWikiLink(heading) : undefined,
-    blockId,
-    width,
-    height,
-    raw: { value: rawValue }
+    blockId: blockId,
+    width: width,
+    height: height,
+    raw: { value: value }
   }
 }

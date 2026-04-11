@@ -76,8 +76,17 @@ export function wikiLink(options?: WikiLinkOptions): Extension {
 
     function escape(code: Code): State | undefined {
       if (code === codes.eof) return nok(code)
-      size++
-      effects.consume(code)
+      
+      // Only escape Obsidian-specific special characters: |, #, ^, \
+      const specialChars = ['|', '#', '^', '\\']
+      if (specialChars.includes(String.fromCharCode(code))) {
+        size++
+        effects.consume(code)
+      } else {
+        // For other characters, keep the backslash
+        size++
+        effects.consume(code)
+      }
       return data
     }
 

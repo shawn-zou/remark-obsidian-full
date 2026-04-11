@@ -7,7 +7,8 @@ export function escapeWikiLink(text: string): string {
 }
 
 export function unescapeWikiLink(text: string): string {
-  return text.replace(/\\([\\|#^])/g, '$1')
+  // 处理 Obsidian 特定的转义字符和常见的 markdown 转义字符
+  return text.replace(/\\([\\|#^\*_`\[\](){}<>+-.!])/g, '$1')
 }
 
 export function needsEscape(text: string, context: 'value' | 'alias' | 'heading' = 'value'): boolean {

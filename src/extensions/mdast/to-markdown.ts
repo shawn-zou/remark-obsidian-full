@@ -65,12 +65,6 @@ function handleEmbed(escapeMode: 'preserve' | 'smart' | 'minimal'): Handle {
 
     if (escapeMode === 'preserve' && embed.raw) {
       value = embed.raw.value ?? embed.value
-      if (embed.heading) {
-        value += '#' + embed.heading
-      }
-      if (embed.blockId) {
-        value += '#^' + embed.blockId
-      }
     } else {
       value = escapeMinimal(embed.value, 'value')
       if (embed.heading) {
@@ -79,9 +73,11 @@ function handleEmbed(escapeMode: 'preserve' | 'smart' | 'minimal'): Handle {
       if (embed.blockId) {
         value += '#^' + embed.blockId
       }
+      // 尺寸在后面添加
     }
 
-    if (embed.width) {
+    // 只有在非 preserve 模式下才添加尺寸，因为 preserve 模式下已经包含在 raw.value 中
+    if (escapeMode !== 'preserve' && embed.width) {
       value += '|' + embed.width
       if (embed.height) {
         value += 'x' + embed.height
