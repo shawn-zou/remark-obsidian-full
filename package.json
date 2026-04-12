@@ -1,0 +1,57 @@
+{
+  "name": "@shawn-zou/remark-obsidian-full",
+  "version": "1.0.0",
+  "description": "A complete Markdown parser for Obsidian syntax with full AST support, built on remark",
+  "main": "dist/index.cjs",
+  "module": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "import": "./dist/index.js",
+      "require": "./dist/index.cjs",
+      "types": "./dist/index.d.ts"
+    }
+  },
+  "files": [
+    "dist",
+    "README.md"
+  ],
+  "scripts": {
+    "build": "npm run build:cjs && npm run build:esm && npm run build:types",
+    "build:cjs": "esbuild src/index.ts --bundle --platform=node --target=node16 --outfile=dist/index.cjs --format=cjs --sourcemap --external:unist-util-visit --external:remark --external:remark-parse --external:remark-stringify --external:remark-gfm --external:remark-frontmatter --external:unified --external:mdast --external:mdast-util-* --external:micromark --external:micromark-*",
+    "build:esm": "esbuild src/index.ts --bundle --platform=node --target=node16 --outfile=dist/index.js --format=esm --sourcemap --external:unist-util-visit --external:remark --external:remark-parse --external:remark-stringify --external:remark-gfm --external:remark-frontmatter --external:unified --external:mdast --external:mdast-util-* --external:micromark --external:micromark-*",
+    "build:types": "tsc --emitDeclarationOnly --declaration --allowJs --outDir dist --skipLibCheck || true",
+    "test": "vitest",
+    "prepublishOnly": "npm run build"
+  },
+  "keywords": [
+    "obsidian",
+    "markdown",
+    "parser",
+    "wikilink",
+    "ast"
+  ],
+  "author": "Shawn Zou",
+  "license": "MIT",
+  "dependencies": {
+    "unist-util-visit": "^5.1.0"
+  },
+  "peerDependencies": {
+    "remark": "^15.0.1",
+    "remark-parse": "^11.0.0",
+    "remark-stringify": "^11.0.0",
+    "remark-gfm": "^4.0.1",
+    "remark-frontmatter": "^5.0.0"
+  },
+  "devDependencies": {
+    "typescript": "^5.0.0",
+    "@types/node": "^20.0.0",
+    "vitest": "^1.0.0",
+    "esbuild": "^0.21.0",
+    "remark": "^15.0.1",
+    "remark-parse": "^11.0.0",
+    "remark-stringify": "^11.0.0",
+    "remark-gfm": "^4.0.1",
+    "remark-frontmatter": "^5.0.0"
+  }
+}

@@ -1,0 +1,8 @@
+import './extensions/wiki-link.test'
+import './extensions/embed.test'
+import './extensions/tag.test'
+import './extensions/highlight.test'
+import './extensions/comment.test'
+import './extensions/math.test'
+import './extensions/escape.test'
+import './integration/full-document.test'
