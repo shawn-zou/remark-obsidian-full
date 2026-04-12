@@ -1,3 +1,5 @@
+**English** | [简体中文](./README_CN.md)
+
 # remark-obsidian-full
 
 A complete Markdown parser for Obsidian syntax with full AST support, built on remark.
